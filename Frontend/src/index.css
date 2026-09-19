@@ -1,0 +1,296 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-heading: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-serif-accent: 'Fraunces', ui-serif, Georgia, serif;
+
+  /* Defaults mirror the "Fresh Dairy" theme; ThemeProvider overrides these at runtime. */
+  --color-primary: #166534;
+  --color-primary-dark: #14532d;
+  --color-primary-light: #dcfce7;
+  --color-primary-mid: #16a34a;
+  --color-primary-rgb: 22, 101, 52;
+  --color-accent: #ca8a04;
+  --color-accent-dark: #a16207;
+  --color-accent-mid: #eab308;
+  --color-accent-light: #fef9c3;
+  --color-accent-rgb: 202, 138, 4;
+  --color-page-bg: #fbfaf5;
+}
+
+html, body {
+  background-color: var(--color-page-bg);
+  font-family: var(--font-body);
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Faint milk-droplet pattern + soft brand glow behind every page. */
+body {
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(var(--color-primary-rgb), 0.07), transparent 45%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cpath d='M18 12c-3 4-5 7-5 10a5 5 0 0 0 10 0c0-3-2-6-5-10z' fill='%23166534' fill-opacity='0.035'/%3E%3Cpath d='M54 44c-2 3-3.5 5-3.5 7a3.5 3.5 0 0 0 7 0c0-2-1.500-4-3.500-7z' fill='%23ca8a04' fill-opacity='0.04'/%3E%3C/svg%3E");
+  background-attachment: fixed;
+  transition: background-color 0.2s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary-mid);
+  outline-offset: 2px;
+}
+
+/* ---------- Keyframes (loaders, illustrations, micro-interactions) ---------- */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(24px); }
+}
+@keyframes ripple {
+  0% { transform: scale(0.4); opacity: 0.7; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes drop-fall {
+  0% { transform: translateY(-14px) scale(0.6); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateY(14px) scale(1); opacity: 0; }
+}
+@keyframes pour-tilt {
+  0%, 15% { transform: rotate(0deg); }
+  45%, 75% { transform: rotate(38deg); }
+  100% { transform: rotate(0deg); }
+}
+@keyframes pour-stream {
+  0%, 30% { transform: scaleY(0); opacity: 0; }
+  45%, 72% { transform: scaleY(1); opacity: 1; }
+  85%, 100% { transform: scaleY(0); opacity: 0; }
+}
+@keyframes glass-fill {
+  0%, 30% { transform: translateY(100%); }
+  75%, 90% { transform: translateY(8%); }
+  100% { transform: translateY(100%); }
+}
+@keyframes moo-bounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-5px) rotate(-2deg); }
+  75% { transform: translateY(-3px) rotate(2deg); }
+}
+@keyframes tail-swish {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(14deg); }
+}
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes steam {
+  0% { transform: translateY(0); opacity: 0; }
+  40% { opacity: 0.6; }
+  100% { transform: translateY(-14px); opacity: 0; }
+}
+
+.animate-fade-in { animation: fade-in 0.3s ease-out; }
+.animate-float { animation: float 4s ease-in-out infinite; }
+.animate-drift { animation: drift 9s ease-in-out infinite alternate; }
+.animate-moo { animation: moo-bounce 1.4s ease-in-out infinite; transform-origin: 50% 100%; }
+.animate-tail { animation: tail-swish 1.4s ease-in-out infinite; transform-origin: 0% 0%; transform-box: fill-box; }
+.animate-ripple { animation: ripple 1.6s ease-out infinite; transform-origin: center; transform-box: fill-box; }
+.animate-drop-fall { animation: drop-fall 1.6s ease-in infinite; transform-origin: center; transform-box: fill-box; }
+.animate-pour-tilt { animation: pour-tilt 3.2s ease-in-out infinite; transform-origin: 85% 90%; transform-box: fill-box; }
+.animate-pour-stream { animation: pour-stream 3.2s ease-in-out infinite; transform-origin: top; transform-box: fill-box; }
+.animate-glass-fill { animation: glass-fill 3.2s ease-in-out infinite; }
+.animate-steam { animation: steam 2.4s ease-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/*
+ * Custom component classes live inside @layer components so Tailwind's utility
+ * layer always wins the cascade regardless of source order. Without this layer,
+ * a plain class like .input-base (width: 100%) sits later in the stylesheet than
+ * Tailwind's generated utilities and silently overrides fixed-width utilities
+ * (w-24, w-20, ...) wherever the two are combined on the same element — that's
+ * what was collapsing the product <select> on Create Invoice down to ~27px.
+ */
+@layer components {
+  .card {
+    background: #fff;
+    border: 1px solid #e6e9df;
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgba(20, 45, 25, 0.04), 0 2px 12px rgba(20, 45, 25, 0.04);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .card-hover:hover {
+    border-color: rgba(var(--color-primary-rgb), 0.28);
+    box-shadow: 0 6px 22px rgba(var(--color-primary-rgb), 0.11), 0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+
+  .input-base {
+    width: 100%;
+    min-height: 2.6rem;
+    border-radius: 0.65rem;
+    border: 1px solid #d5d9cd;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition: box-shadow 0.15s, border-color 0.15s, background-color 0.15s;
+    background: #fff;
+  }
+  .input-base::placeholder { color: #94a3b8; }
+  .input-base:hover { border-color: #b9bfae; }
+  .input-base:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3.5px rgba(var(--color-primary-rgb), 0.16);
+  }
+  .input-base:disabled { background: #f4f5ef; color: #64748b; cursor: not-allowed; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--color-primary-mid), var(--color-primary));
+    color: #fff;
+    border-radius: 0.65rem;
+    padding: 0.55rem 1.15rem;
+    min-height: 2.6rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    box-shadow: 0 1px 2px rgba(var(--color-primary-rgb), 0.18), 0 4px 12px rgba(var(--color-primary-rgb), 0.2);
+    transition: filter 0.15s, box-shadow 0.15s, transform 0.1s, background 0.2s;
+  }
+  .btn-primary:hover { filter: brightness(1.06); box-shadow: 0 2px 4px rgba(var(--color-primary-rgb), 0.22), 0 8px 18px rgba(var(--color-primary-rgb), 0.26); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; filter: none; box-shadow: none; }
+
+  .btn-secondary {
+    background: #fff;
+    color: #2f3a2f;
+    border: 1px solid #d5d9cd;
+    border-radius: 0.65rem;
+    padding: 0.55rem 1.15rem;
+    min-height: 2.6rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+  .btn-secondary:hover { background: #f7f8f2; border-color: #b9bfae; }
+  .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-ghost {
+    color: #475569;
+    border-radius: 0.6rem;
+    padding: 0.45rem 0.8rem;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .btn-ghost:hover { background: rgba(var(--color-primary-rgb), 0.07); color: var(--color-primary); }
+
+  .btn-danger {
+    background: #fff;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    border-radius: 0.65rem;
+    padding: 0.55rem 1.15rem;
+    min-height: 2.6rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: background-color 0.15s;
+  }
+  .btn-danger:hover { background: #fef2f2; }
+
+  .btn-amber {
+    background: linear-gradient(135deg, var(--color-accent-mid), var(--color-accent));
+    color: #fff;
+    border-radius: 0.65rem;
+    padding: 0.55rem 1.15rem;
+    min-height: 2.6rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 10px rgba(var(--color-accent-rgb), 0.22);
+    transition: filter 0.15s, background 0.2s;
+  }
+  .btn-amber:hover { filter: brightness(1.05); }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 9999px;
+    padding: 0.15rem 0.6rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    line-height: 1.4;
+  }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-gold { background: #fef9c3; color: #854d0e; }
+  .badge-red { background: #fee2e2; color: #b91c1c; }
+  .badge-slate { background: #eef0e8; color: #475569; }
+
+  .skeleton {
+    border-radius: 0.5rem;
+    background: linear-gradient(90deg, #eef0e8 25%, #f8f9f3 37%, #eef0e8 63%);
+    background-size: 800px 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+
+  .section-title {
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+
+  table.data-table {
+    border-collapse: collapse;
+  }
+  table.data-table thead th {
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #3f4a3f;
+    background: rgba(var(--color-primary-rgb), 0.055);
+    padding: 0.75rem 1.1rem;
+    border-bottom: 1px solid #e3e7da;
+    white-space: nowrap;
+  }
+  table.data-table thead tr:first-child th:first-child { border-top-left-radius: 0.6rem; }
+  table.data-table thead tr:first-child th:last-child { border-top-right-radius: 0.6rem; }
+  table.data-table td {
+    padding: 0.75rem 1.1rem;
+    border-bottom: 1px solid #f0f2ea;
+    font-size: 0.875rem;
+  }
+  table.data-table tbody tr {
+    transition: background-color 0.12s ease;
+  }
+  table.data-table tbody tr:hover {
+    background: rgba(var(--color-primary-rgb), 0.04);
+  }
+  table.data-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+}
