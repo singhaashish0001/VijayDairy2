@@ -1,0 +1,23 @@
+name,unit,price,stock,low_stock_threshold
+Standard Milk 1 LTR,LTR,74,0,0
+A2 Cow Milk,LTR,96,0,0
+Cow Milk,LTR,74,0,0
+Curd 1 KG,KG,90,0,0
+khoya 1 KG,KG,480,0,0
+Paneer,KG,420,0,0
+Masala Paneer,KG,460,0,0
+Malai Paneer,KG,460,0,0
+Butter,KG,680,0,0
+Cream 1 KG,KG,400,0,0
+Basi Cream,KG,420,0,0
+Milk Badam,PCS,55,0,0
+Sweet Lassi,PCS,55,0,0
+Mango Lassi,PCS,65,0,0
+Salted Lassi,PCS,55,0,0
+Masala Chaach,PCS,50,0,0
+Plain chaach,PCS,45,0,0
+Pithi Dosa,PCS,160,0,0
+Pithi Maha/Urad,PCS,180,0,0
+Ptthi Mung,PCS,180,0,0
+chapp,PCS,180,0,0
+Bhalla 5 PICS,PCS,50,0,0
