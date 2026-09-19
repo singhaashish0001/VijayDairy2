@@ -1,9 +1,0 @@
-<Solution>
-  <Project Path="VijayDairy.Api/VijayDairy.Api.csproj" />
-  <Project Path="VijayDairy.Application/VijayDairy.Application.csproj" />
-  <Project Path="VijayDairy.Common/VijayDairy.Common.csproj" />
-  <Project Path="VijayDairy.Domain/VijayDairy.Domain.csproj" />
-  <Project Path="VijayDairy.Persistence/VijayDairy.Persistence.csproj" />
-  <Project Path="VijayDairy.Postgres/VijayDairy.Postgres.csproj" />
-  <Project Path="VijayDairy.Tests/VijayDairy.Tests.csproj" />
-</Solution>

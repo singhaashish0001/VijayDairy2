@@ -1,6 +1,5 @@
-bin/
-obj/
-*.user
-appsettings.Development.json
-appsettings.Local.json
-.vs/
+node_modules/
+dist/
+.env
+*.log
+coverage/

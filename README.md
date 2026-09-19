@@ -2,58 +2,60 @@
 
 Dairy shop operations app: products, invoices, inventory, dashboard, business settings, and public invoice sharing.
 
-- **Frontend**: React + Vite + **TypeScript**, **MobX** for state, Tailwind CSS — folder structure (`core/stores`, `core/service`, `core/interceptor`, `contexts`, `modules/<feature>`) follows the monoZTrack frontend architecture.
-- **Backend**: ASP.NET Core Web API (.NET 10), layered into 6 projects (Api / Application / Domain / Persistence / Postgres / Common) with **MediatR CQRS** (a Command or Query + Handler per action) and **raw ADO.NET via Npgsql** — no Entity Framework, no Dapper. Follows the monoZTrack backend architecture.
-- **Database**: PostgreSQL
-- **Documents**: `Documents/` — User Manual, Architecture reference (with diagram), and a Setup/Step-by-Step Guide, all as `.docx`.
+- **Frontend**: React + Vite + **TypeScript**, **MobX** for state, Tailwind CSS.
+- **Backend**: **Node.js + Express + TypeScript** REST API (`Backend/`), talking to the database with `pg`.
+- **Database**: **Supabase** (hosted PostgreSQL). The API is the only client; login uses its own JWT auth.
+- **Documents**: `Documents/` — User Manual, Architecture reference and Setup guide as `.docx` (written for the earlier .NET version; the API contract is unchanged).
 
 ## Prerequisites
 
-- .NET 10 SDK
-- Node.js 18+ (project was set up with Node 24 via nvm)
-- PostgreSQL 14+
+- Node.js 20+
+- A Supabase project
 
-## Database setup
+## Database setup (Supabase)
 
-Create the database and load the schema:
-
-```bash
-psql -U postgres -c "CREATE DATABASE vijay_dairy;"
-psql -U postgres -d vijay_dairy -f Backend/db/schema.sql
-```
+1. Create a project at [supabase.com](https://supabase.com).
+2. Open **SQL Editor → New query**, paste the contents of `Backend/supabase/schema.sql` and run it.
+3. Open **Project Settings → Database → Connection string**, copy the **pooler** URI and put it in `Backend/.env` as `DATABASE_URL` (replace `[YOUR-PASSWORD]` with your database password).
 
 ## Backend
 
 ```bash
 cd Backend
-dotnet run --project VijayDairy.Api
+cp .env.example .env     # then fill in DATABASE_URL, JWT_SECRET, ADMIN_PASSWORD
+npm install
+npm run dev              # http://localhost:5227
 ```
 
-Runs on `http://localhost:5227` (the `http` profile in `VijayDairy.Api/Properties/launchSettings.json` — also what Visual Studio uses when you hit Run/F5). Override with `dotnet run --project VijayDairy.Api --urls "http://localhost:<port>"` if you need a different port, and update `Frontend/.env.development`'s `VITE_API_URL` / `vite.config.ts`'s proxy target to match.
+Other scripts: `npm test` (vitest), `npm run typecheck`, `npm run build` + `npm start` (production).
+
+Configuration (`Backend/.env`, see `.env.example`):
+
+- `DATABASE_URL` — Supabase Postgres connection string (`DATABASE_SSL=false` only for a non-SSL local Postgres)
+- `JWT_SECRET` / `JWT_ISSUER` / `JWT_AUDIENCE` / `JWT_EXPIRY_HOURS`
+- `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NAME` — seeded as the initial admin user on startup if no user has that email
+- `CORS_ORIGINS` — comma-separated allowed frontend origins
+- `PORT` — defaults to 5227 (matches the frontend proxy)
+
+**Use a long random `JWT_SECRET` and a strong `ADMIN_PASSWORD`; never commit `.env`.**
 
 Project layout:
 
 ```
 Backend/
-  VijayDairy.Api/            Controllers, Program.cs, Middlewares/ErrorHandling.cs, Helpers/ServiceManager.cs
-  VijayDairy.Application/    Managements/<Feature>Management/{Commands,Queries}/<Action>/{Command,Handler,Validator}
-  VijayDairy.Domain/         Entities, Models/*VM.cs (view models), Models/Common/ResponseModel.cs
-  VijayDairy.Persistence/    Repository interfaces + IDbHelper
-  VijayDairy.Postgres/       PostgresHelper (raw ADO.NET) + repository implementations
-  VijayDairy.Common/         Enums (with [Description] + GetEnumDescription()), Exceptions
-  db/schema.sql
+  supabase/schema.sql        Tables, indexes, seed rows, RLS
+  src/
+    index.ts / app.ts        Startup + admin seeding / Express app wiring
+    config.ts, db.ts         Environment config / pg pool (NUMERIC parsed to numbers)
+    envelope.ts, errors.ts   { error, statusCode, messageId, messageText, data } envelope and error types
+    middleware/              JWT auth, camelCase key normalisation, UUID param check, error handler
+    routes/                  auth, products, invoices, settings, dashboard, public
+    services/                lineCalculator, invoiceService, csvParser, importProducts, importStock, dashboardService
+    repositories/            SQL access for users, products, invoices, settings
+  tests/                     vitest suites (line maths, CSV imports, API contract)
 ```
 
-Every MediatR handler returns a `ResponseModel<T>` (`error`, `statusCode`, `messageId`, `messageText`, `data`); thrown exceptions (`NotFoundException`, `DuplicateResourceException`, `ValidationException`, `InvalidEmailOrPasswordException`, `UnauthorizedException`) are caught by `ErrorHandling` middleware and mapped to the same envelope + HTTP status. JSON is serialized camelCase (Newtonsoft, ASP.NET Core's default `AddNewtonsoftJson()` contract resolver) — this is the one deliberate deviation from monoZTrack's PascalCase convention, kept because it's the normal REST/JS convention this frontend expects.
-
-Configuration lives in `appsettings.json` (override locally via `appsettings.Development.json`, which is gitignored, or environment variables):
-
-- `ConnectionStrings:Postgres` — Postgres connection string
-- `Jwt:Secret` / `Jwt:Issuer` / `Jwt:Audience` / `Jwt:ExpiryHours`
-- `Admin:Email` / `Admin:Password` / `Admin:Name` — seeded as the initial admin user on first run if no user exists
-- `Cors:AllowedOrigins` — array of allowed frontend origins
-
-On startup, if no admin user exists, one is created from `Admin:Email` / `Admin:Password`. **Change the default admin password and JWT secret before deploying anywhere non-local.**
+Every response uses the envelope `{ error, statusCode, messageId, messageText, data }`; thrown errors are mapped to the same shape with the real HTTP status by `middleware/common.ts`. JSON is camelCase; request bodies may use PascalCase keys (the frontend does) — the first letter of every key is normalised.
 
 ## Frontend
 
@@ -63,7 +65,7 @@ npm install
 npm run dev
 ```
 
-Runs on `http://localhost:5173` and proxies `/api` to `http://localhost:5227` in dev (see `vite.config.ts`). Environment variables live in `.env.development` / `.env.production` (Vite's standard mode-based files — see the header comment in each for what every variable does); `VITE_API_URL` overrides the proxy when set to an absolute URL (must include the `/api` suffix), and `VITE_PUBLIC_URL` sets Vite's `base` path.
+Runs on `http://localhost:5173` and proxies `/api` to `http://localhost:5227` in dev (see `vite.config.ts`). Environment variables live in `.env.development` / `.env.production`; `VITE_API_URL` overrides the proxy when set to an absolute URL (must include the `/api` suffix), and `VITE_PUBLIC_URL` sets Vite's `base` path.
 
 Project layout:
 
@@ -73,46 +75,24 @@ Frontend/src/
     interceptor/interceptor.ts   Axios instance: Bearer token injection, 401 → clear session + redirect
     service/base-service.ts      Typed get/post/put/delete wrappers over the interceptor's Axios instance
     stores/                      MobX class stores (auth, product, invoice, settings, dashboard, public-invoice)
-      interfaces/                Store contracts (e.g. IProductStore)
-    initial-state/               Reusable IObservableInitialState initial values (not currently needed per-store)
-  contexts/
-    store-provider.tsx           React context exposing the MobX root store via useStore()
-    auth-provider.tsx            Re-validates a persisted token against /auth/me on mount
+  contexts/                      store-provider, auth-provider (re-validates the token via /auth/me), theme-provider
   constants/                     url-constants.ts, error-constants.ts
-  models/                        forms/, response/, state/, ICommon.ts — TypeScript interfaces
-  helpers/                       config-helper, secure-storage (XOR-obfuscated localStorage), format, pdf
+  models/                        forms/, response/, state/ — TypeScript interfaces
+  helpers/                       config-helper, secure-storage, format, pdf, csv-template, line-item-calc
   shared-components/             layout.tsx, protected-route.tsx
-  modules/
-    auth/login.tsx
-    dashboard/dashboard.tsx
-    product/product.tsx + components/{product-dialog,import-dialog}.tsx
-    invoice/{create-invoice,invoices}.tsx
-    settings/settings.tsx
-    public-invoice/public-invoice.tsx
+  modules/                       auth, dashboard, product, invoice, settings, public-invoice
 ```
-
-Each MobX store instance is a singleton (`export default new XStore()`), aggregated into a `RootStore` in `core/stores/index.ts`, and consumed in components via `observer(Component)` + `useStore()`.
 
 ## Notes on API design
 
-- All authenticated endpoints require `Authorization: Bearer <JWT>`.
-- Invoice items are stored as JSONB on the `invoices` row (server-computed totals from client-submitted line items — see "Known gaps" below).
-- Invoice numbers follow `VD-YYYYMM-XXXX`, generated from an atomic Postgres counter inside the same transaction as invoice insert + stock decrement.
-- `GET /api/public/invoices/{id}` is unauthenticated and does not expose `inventoryEnabled`.
+- All endpoints except `POST /api/auth/login` and `GET /api/public/invoices/:id` require `Authorization: Bearer <JWT>`.
+- Invoice items are stored as JSONB on the `invoices` row; quantity, amount and totals are recomputed server-side from the rate (`services/lineCalculator.ts`, mirrored by `Frontend/src/helpers/line-item-calc.ts` — keep both in sync).
+- Invoice numbers follow `VD-YYYYMM-XXXX`, from an atomic counter in the same transaction as the invoice insert and stock decrement.
+- `GET /api/public/invoices/:id` is unauthenticated and does not expose `inventoryEnabled`.
 
-## Known gaps (carried over from the original requirements doc)
+## Known gaps (kept as-is from the original app)
 
-- The API trusts client-supplied item price/name/unit rather than re-validating against the current product record server-side.
-- No stock-availability check on invoice creation — stock can go negative.
-- Products/invoices list endpoints are capped at 1000 rows with no pagination.
+- The API trusts client-supplied item price/name/unit rather than re-validating against the current product record.
+- No stock-availability check on invoice creation — stock can go negative; deleting an invoice does not restore stock.
+- Products/invoices list endpoints are capped at 1000 rows with no pagination, and the dashboard aggregates only the latest 1000 invoices.
 - Logout does not revoke the JWT server-side (client-side token discard only).
-
-## Scope decisions vs. monoZTrack's full architecture
-
-Deliberately not carried over, since they're specific to monoZTrack's domain (IoT device tracking) or add enterprise scope this app doesn't need:
-
-- **AutoMapper** — handlers map between Entity and VM by hand instead.
-- **Audit logging** — no `AuditLog` entity/repository/table.
-- **NLog `ApplicationLogger` project** — uses ASP.NET Core's built-in `ILogger` instead.
-- **Infrastructure project** (device decoders) — not applicable.
-- **MSAL/SSO auth, i18n, AES-GCM secure-storage** — this app only needs email/password login and a lighter XOR-obfuscated localStorage wrapper.
