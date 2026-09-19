@@ -1,19 +1,6 @@
-import bcrypt from 'bcryptjs';
 import { createApp } from './app';
 import { config } from './config';
-import { userRepository } from './repositories/userRepository';
-
-/** Seeds the admin user on startup if none exists with the configured email (needs ADMIN_PASSWORD). */
-async function seedAdmin() {
-  const { email, password, name } = config.admin;
-  if (!password) {
-    console.warn('ADMIN_PASSWORD is not set - skipping admin seeding.');
-    return;
-  }
-  if (await userRepository.getByEmail(email)) return;
-  await userRepository.create({ email, passwordHash: await bcrypt.hash(password, 11), name, role: 'admin' });
-  console.log(`Seeded admin user ${email}`);
-}
+import { seedAdmin } from './seed';
 
 async function main() {
   if (!config.jwt.secret) throw new Error('JWT_SECRET is required');

@@ -83,6 +83,19 @@ Frontend/src/
   modules/                       auth, dashboard, product, invoice, settings, public-invoice
 ```
 
+## Deploying everything on Netlify (no separate API host)
+
+The repo is ready for a single Netlify site: the React build is served statically and the Express API runs as a Netlify Function at `/api` (same domain, no CORS). `netlify.toml` holds the build settings and redirects; `netlify/functions/api.ts` loads `Backend/src/serverless.ts`.
+
+1. In Netlify: **Add new site → Import an existing project**, pick this repo and the `main` branch. **Leave all Build settings fields empty** (they come from `netlify.toml`).
+2. Add these environment variables (mark secrets as secret):
+   - `DATABASE_URL` — Supabase **Transaction pooler** URI (port 6543), password URL-encoded
+   - `PG_POOL_MAX=1`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`
+   - `VITE_API_URL=/api`, `VITE_SECURE_STORAGE_ACTIVE=true` (public build-time values — never put secrets in `VITE_*`)
+3. Deploy, then open `https://<site>.netlify.app/api/auth/me` (expect an empty 401) and sign in.
+
+The admin user is created lazily on the first request after a deploy. Locally you can test the same setup with `npx netlify-cli dev --dir Frontend/dist` after `npm --prefix Frontend run build`.
+
 ## Notes on API design
 
 - All endpoints except `POST /api/auth/login` and `GET /api/public/invoices/:id` require `Authorization: Bearer <JWT>`.

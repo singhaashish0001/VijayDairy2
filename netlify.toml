@@ -1,0 +1,25 @@
+# Netlify config for the whole app: React frontend (static) + Express API (serverless function).
+# Leave the Build settings fields in the Netlify UI empty; these values are used.
+
+[build]
+  command   = "npm --prefix Backend ci && npm --prefix Frontend ci && npm --prefix Frontend run build"
+  publish   = "Frontend/dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  node_bundler = "esbuild"
+
+# The API must come first: it is more specific than the single-page-app fallback below.
+[[redirects]]
+  from   = "/api/*"
+  to     = "/.netlify/functions/api/:splat"
+  status = 200
+
+# Single-page app: unknown paths (page refreshes, /invoice/<id> links) return index.html.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200

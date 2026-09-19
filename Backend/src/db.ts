@@ -14,7 +14,8 @@ export function getPool(): pg.Pool {
     pool = new pg.Pool({
       connectionString: config.databaseUrl,
       ssl: config.databaseSsl ? { rejectUnauthorized: false } : undefined,
-      max: 10,
+      // Serverless hosts (Netlify Functions) should set PG_POOL_MAX=1: every warm instance keeps one connection.
+      max: Number(process.env.PG_POOL_MAX ?? 10),
     });
   }
   return pool;

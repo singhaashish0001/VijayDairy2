@@ -33,3 +33,6 @@ Thumbs.db
 # Leftover .NET build output (the .NET backend was removed)
 bin/
 obj/
+
+# Local Netlify folder
+.netlify
